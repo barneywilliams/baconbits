@@ -1,5 +1,5 @@
 class Ammo
-  def intitialize(window, field_width, field_height)
+  def initialize(window, field_width, field_height)
     @image = Gosu::Image.new(window, "media/ammo.png", false)
     @field_width = field_width
     @field_height = field_height
@@ -9,9 +9,11 @@ class Ammo
   end
 
   def fire_from(x, y)
-    @x = x
-    @y = y
-    @visible = true
+    if !@visible
+      @x = x - @x_offset
+      @y = y
+      @visible = true
+    end
   end
 
   def move_ammo

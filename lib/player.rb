@@ -1,12 +1,13 @@
 require 'ammo.rb'
 
 class Player
-  def initialize(window)
+  def initialize(window, ammo)
     @image = Gosu::Image.new(window, "media/actor.png", false)
     @x = @y = 0.0
     @score = 0
     @shift_width = 4.0
     @x_padding = 40.0
+    @ammo = ammo
   end
 
   def warp(x, y)
@@ -22,7 +23,18 @@ class Player
     end
   end
 
+  def fire
+    @ammo.fire_from(top, @y)
+  end
+
   def draw
     @image.draw(@x, @y, 1)
   end
+
+  private
+
+  def top
+    @x + @image.width / 2.0
+  end
+
 end
