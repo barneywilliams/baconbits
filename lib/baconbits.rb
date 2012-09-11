@@ -14,9 +14,14 @@ class BaconBitsWindow < Gosu::Window
     self.caption = 'BaconBits'
     @background_image = Gosu::Image.new(self, "media/background.png", true)
 
+    @level_complete = Gosu::Image.from_text(self, "Yay! A Winner is You!!", "Consolas", 24)
+
+    @complete_x = (640 / 2) - (@level_complete.width / 2)
+    @complete_y = (480 / 2) - (@level_complete.height / 2)
+
     @status = Status.new(self, 640, 480)
     @ammo = Ammo.new(self, 640, 480)
-    @bacon = Bacon.new(self, 640, 480)
+    @bacon = Bacon.new(self, @ammo, 640, 480)
     @player = Player.new(self, @ammo)
     @player.warp(320, 405)
   end
@@ -38,13 +43,18 @@ class BaconBitsWindow < Gosu::Window
     if button_down? Gosu::KbSpace then
       @player.fire
     end
-    
+
   end
   
   def draw
-    @bacon.draw
-    @player.draw
+    if @bacon.complete
+      @level_complete.draw(@complete_x, @complete_y, 0.8)
+    else
+      @bacon.draw
+    end
+
     @ammo.draw
+    @player.draw
     @status.draw
     @background_image.draw(0, 0, 0)
   end

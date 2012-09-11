@@ -1,4 +1,7 @@
 class Ammo
+
+  attr_accessor :visible
+
   def initialize(window, field_width, field_height)
     @image = Gosu::Image.new(window, "media/ammo.png", false)
     @field_width = field_width
@@ -6,6 +9,7 @@ class Ammo
     @visible = false
     @x_offset = @image.width / 2.0
     @y_shift = -1.0 * @image.height / 2.0
+    @rot = 0
   end
 
   def fire_from(x, y)
@@ -25,8 +29,14 @@ class Ammo
 
   def draw
     if @visible
-      @image.draw(@x, @y, 1)
+      #@image.draw(@x, @y, 1)
+      @rot += 60
+      @image.draw_rot(@x, @y, 1, @rot)
       move_ammo
     end
+  end
+
+  def bounds
+    return @x, @y, @x + @image.width, @y + @image.height
   end
 end
