@@ -3,56 +3,44 @@ class Bacon
   attr_reader :complete
 
   def initialize(window, ammo, field_width, field_height)
+    @window = window
     @ammo = ammo
-    @boom = Gosu::Song.new("media/boom.wav")
-    @win = Gosu::Song.new("media/applause.wav")
-    @bit_size = 20
-    tiles = Gosu::Image.load_tiles(window, "media/bacon.png", @bit_size, @bit_size, true)
-    @bitz = []
-    tiles.each{|tile| @bitz << {:img => tile, :present => true}}
     @field_width = field_width
     @field_height = field_height
 
-    img = Gosu::Image.new(window, "media/bacon.png")
-    @image_width = img.width
-    @image_height = img.height
+    load_bacon 5  
 
-    @x = @x_min = 60
-    @x_max = 400
-    @y = @y_min = 80
-    @y_max = 200
-    @direction = :right
-    @rise = false
+    @boom = Gosu::Song.new("media/boom.wav")
+    @win = Gosu::Song.new("media/applause.wav")
 
     @complete = false
   end
-
+                                                                                                                                                                           
   def draw
     if !@complete
       move_bacon
       x = @x
       y = @y
 
-      total_bitz = @bitz.count
-      bitz_gone = 0
+      total_bits = @bits.count * @bits[0].count
+      bits_gone = 0
 
-      @bitz.each_with_index do |bit, i|
-        check_for_hit(bit, x, y)
-        if bit[:present]
-          bit[:img].draw(x, y, 1)
-        else
-          bitz_gone += 1
+      y = @y
+      @bits.each do |row|
+        x = @x
+        row.each do |bit|
+          check_for_hit(bit, x, y)
+          if bit[:present] 
+            bit[:img].draw(x, y, 1)
+          else
+            bits_gone += 1
+          end
+          x += @bit_size
         end
-
-        if ((i % 2) == 0) # shift across image
-          x += bit[:img].width
-        else              # shift down a row
-          x -= bit[:img].width
-          y += bit[:img].height
-        end
+        y += @bit_size
       end
 
-      if bitz_gone == total_bitz
+      if bits_gone == total_bits
         sleep 0.4
         @win.play
         @complete = true
@@ -111,6 +99,35 @@ private
       end
     end
     return false
+  end
+
+  private
+
+  def load_bacon(width_in_bits)
+    img = Gosu::Image.new(@window, "media/bacon.png")
+    @bit_size = img.width
+    @num_rows = img.height / @bit_size
+    tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
+
+    @bits = Array.new(@num_rows)
+    p @bits
+    @bits.each_index do |row|
+      @bits[row] = []
+      width_in_bits.times do
+        @bits[row] << {:img => tiles[row], :present => true}
+      end
+    end
+
+    @bits.each do |row|
+      p row
+    end
+
+    @x = @x_min = 60
+    @x_max = 400
+    @y = @y_min = 80
+    @y_max = 200
+    @direction = :right
+    @rise = false
   end
 
 end

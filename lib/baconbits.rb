@@ -10,20 +10,27 @@ require 'status'
 class BaconBitsWindow < Gosu::Window
 
   def initialize
-    super(640, 480, false)
+    @width = 727
+    @height = 512
+    super(@width, @height, false)
     self.caption = 'BaconBits'
     @background_image = Gosu::Image.new(self, "media/background.png", true)
+    @title = Gosu::Image.new(self, "media/title.png", true)
+    @title_x = (@width * 0.5) - (@title.width * 0.5)
+    @title_y = 8
 
     @level_complete = Gosu::Image.from_text(self, "Yay! A Winner is You!!", "Consolas", 24)
 
-    @complete_x = (640 / 2) - (@level_complete.width / 2)
-    @complete_y = (480 / 2) - (@level_complete.height / 2)
+    @complete_x = (@width * 0.5) - (@level_complete.width * 0.5)
+    @complete_y = (@height * 0.5) - (@level_complete.height * 0.5)
 
-    @status = Status.new(self, 640, 480)
-    @ammo = Ammo.new(self, 640, 480)
-    @bacon = Bacon.new(self, @ammo, 640, 480)
+    @status = Status.new(self, @width, @height)
+    @ammo = Ammo.new(self, @width, @height)
+    @bacon = Bacon.new(self, @ammo, @width, @height)
     @player = Player.new(self, @ammo)
-    @player.warp(320, 405)
+    player_x = (@width * 0.5) - (@player.width * 0.5)
+    player_y = (@height * 0.9) - (@player.height * 0.5)
+    @player.warp(player_x, player_y)
   end
 
   def update
@@ -36,27 +43,28 @@ class BaconBitsWindow < Gosu::Window
       @player.shift(1)
     end
 
-    if button_down? Gosu::KbUp or button_down? Gosu::GpButton0 then
-      @player.fire
-    end
-
-    if button_down? Gosu::KbSpace then
+    if button_down? Gosu::KbUp or button_down? Gosu::GpButton0 or button_down? Gosu::KbSpace then
       @player.fire
     end
 
   end
   
   def draw
+
+    @background_image.draw(0, 0, 0)
+    
+    @status.draw
+    @title.draw(@title_x, @title_y, 0)
+
+    @player.draw
+    @ammo.draw
+
     if @bacon.complete
       @level_complete.draw(@complete_x, @complete_y, 0.8)
     else
       @bacon.draw
     end
 
-    @ammo.draw
-    @player.draw
-    @status.draw
-    @background_image.draw(0, 0, 0)
   end
 
   def button_down(id)

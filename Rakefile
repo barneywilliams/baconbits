@@ -6,9 +6,7 @@ task :default => [:test, :run]
 
 desc "Play BaconBits"
 task :run do
-  FileUtils.cd('lib') do
-    sh "ruby baconbits.rb"
-  end
+  sh "lib/ruby baconbits.rb"
 end
 
 desc "Run all tests"

@@ -1,8 +1,13 @@
 require 'ammo.rb'
 
 class Player
+
+  attr_reader :width, :height, :x, :y
+
   def initialize(window, ammo)
     @image = Gosu::Image.new(window, "media/actor.png", false)
+    @width = @image.width
+    @height = @image.height
     @x = @y = 0.0
     @score = 0
     @shift_width = 4.0
