@@ -1,3 +1,5 @@
+require 'bit'
+
 class Bacon
 
   attr_reader :complete
@@ -15,32 +17,33 @@ class Bacon
 
     @complete = false
   end
-                                                                                                                                                                           
+                                                                                                                               
   def draw
     if !@complete
       move_bacon
       x = @x
       y = @y
 
-      total_bits = @bits.count * @bits[0].count
-      bits_gone = 0
+      bits_left = @bits.count * @bits[0].count
 
       y = @y
       @bits.each do |row|
         x = @x
         row.each do |bit|
-          check_for_hit(bit, x, y)
-          if bit[:present] 
-            bit[:img].draw(x, y, 1)
+          bit.x = x
+          bit.y = y
+          check_for_hit(bit)
+          if bit.visible?
+            bit.draw
           else
-            bits_gone += 1
+            bits_left -= 1
           end
           x += @bit_size
         end
         y += @bit_size
       end
 
-      if bits_gone == total_bits
+      if bits_left <= 0
         sleep 0.4
         @win.play
         @complete = true
@@ -49,6 +52,35 @@ class Bacon
   end
 
 private
+
+  def load_bacon(width_in_bits)
+    img = Gosu::Image.new(@window, "media/bacon.png")
+    @bit_size = img.width
+    @num_rows = img.height / @bit_size
+    tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
+    @x = @x_min = 60
+    @x_max = 400
+    @y = @y_min = 80
+    @y_max = 200
+    @direction = :right
+    @rise = false
+
+    # Assemble the bacon from bits
+    x = @x
+    y = @y
+    @bits = Array.new(@num_rows)
+    @bits.each_index do |row|
+      x = @x
+      @bits[row] = []
+      width_in_bits.times do
+        @bits[row] << Bit.new(@window, tiles[row], x, y, true)
+        x += @bit_size
+      end
+      y += @bit_size
+    end
+
+    @bits_left = @bits.count * @bits[0].count
+  end
 
   def move_bacon
     if @direction == :left
@@ -74,12 +106,11 @@ private
     end
   end
 
-  def check_for_hit(bit, x, y)
-    if @ammo.visible && bit[:present]
+  def check_for_hit(bit)
+    if @ammo.visible && bit.visible?
       a = {}
       a[:x], a[:y], a[:right], a[:bottom] = @ammo.bounds
-      b = {}
-      b[:x], b[:y], b[:right], b[:bottom] = x, y, x + @bit_size, y + @bit_size
+      b = {:x=>bit.x, :y=>bit.y, :right=>bit.x+@bit_size, :bottom=>bit.y+@bit_size}
 
       # Check each corner of the ammo to see if it is inside the bit
       ammo_corners = [
@@ -90,7 +121,8 @@ private
       ].each do |c|
         if ((c[:x] >= b[:x]) && (c[:x] <= b[:right]) &&
             (c[:y] >= b[:y]) && (c[:y] <= b[:bottom]))
-          bit[:present] = false
+          bit.visible = false
+          bit.falling = true
           @ammo.visible = false
           @boom.stop
           @boom.play
@@ -99,35 +131,6 @@ private
       end
     end
     return false
-  end
-
-  private
-
-  def load_bacon(width_in_bits)
-    img = Gosu::Image.new(@window, "media/bacon.png")
-    @bit_size = img.width
-    @num_rows = img.height / @bit_size
-    tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
-
-    @bits = Array.new(@num_rows)
-    p @bits
-    @bits.each_index do |row|
-      @bits[row] = []
-      width_in_bits.times do
-        @bits[row] << {:img => tiles[row], :present => true}
-      end
-    end
-
-    @bits.each do |row|
-      p row
-    end
-
-    @x = @x_min = 60
-    @x_max = 400
-    @y = @y_min = 80
-    @y_max = 200
-    @direction = :right
-    @rise = false
   end
 
 end
