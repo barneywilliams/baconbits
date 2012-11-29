@@ -1,4 +1,6 @@
-class Status
+require 'actor'
+
+class Status < Actor
   def initialize(window, field_width, field_height)
     @score = Gosu::Image.from_text(window, "420", "Andale Mono", 30)
     @field_width = field_width

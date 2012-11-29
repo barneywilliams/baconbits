@@ -1,49 +1,32 @@
+require 'actor'
 require 'bit'
 
-class Bacon
+class Bacon < Actor
 
   attr_reader :complete
 
   def initialize(window, ammo, field_width, field_height)
-    @window = window
+    super(window, nil, 0, 0, field_width, field_height, true)
+
     @ammo = ammo
-    @field_width = field_width
-    @field_height = field_height
-
-    load_bacon 5  
-
+    @complete = false
+    load_bacon(5)
     @boom = Gosu::Song.new("media/boom.wav")
     @win = Gosu::Song.new("media/applause.wav")
-
-    @complete = false
   end
                                                                                                                                
   def draw
     if !@complete
       move_bacon
-      x = @x
-      y = @y
 
-      bits_left = @bits.count * @bits[0].count
-
-      y = @y
       @bits.each do |row|
-        x = @x
         row.each do |bit|
-          bit.x = x
-          bit.y = y
           check_for_hit(bit)
-          if bit.visible?
-            bit.draw
-          else
-            bits_left -= 1
-          end
-          x += @bit_size
+          bit.draw
         end
-        y += @bit_size
       end
 
-      if bits_left <= 0
+      if @bits_left <= 0
         sleep 0.4
         @win.play
         @complete = true
@@ -80,33 +63,41 @@ private
     end
 
     @bits_left = @bits.count * @bits[0].count
+    p "Bits: #{@bits_left}"
   end
 
   def move_bacon
-    if @direction == :left
-      @x -= @bit_size / 16
-    else
-      @x += @bit_size / 16
-    end
-
-    y_sign = @rise ? -1.0 : 1.0
+    # calculate shift
+    x_sign = @direction == :left ? -1 : 1
+    x_shift = (@bit_size / 16) * x_sign
+    @x += x_shift
+    y_sign = @rise ? -1 : 1
     y_shift = (@bit_size / 2) * y_sign
+    @y += y_shift
+
+    # update direction if we've hit a boundary
     if @x > @x_max
       @direction = :left
-      @y += y_shift
     elsif @x < @x_min
       @direction = :right
-      @y += y_shift
     end
-
     if @y > @y_max
       @rise = true
     elsif @y < @y_min
       @rise = false
     end
+
+    # shift each bit accordingly
+    @bits.each do |row|
+      row.each do |bit|
+        bit.shift(x_shift, y_shift)
+      end
+    end
   end
 
   def check_for_hit(bit)
+    hit = false
+
     if @ammo.visible && bit.visible?
       a = {}
       a[:x], a[:y], a[:right], a[:bottom] = @ammo.bounds
@@ -126,11 +117,13 @@ private
           @ammo.visible = false
           @boom.stop
           @boom.play
-          return true
+          @bits_left -= 1
+          hit = true
         end
       end
     end
-    return false
+
+    return hit
   end
 
 end

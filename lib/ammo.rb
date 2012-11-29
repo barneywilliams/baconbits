@@ -1,12 +1,9 @@
-class Ammo
+require 'actor'
 
-  attr_accessor :visible
+class Ammo < Actor
 
   def initialize(window, field_width, field_height)
     @image = Gosu::Image.new(window, "media/ammo.png", false)
-    @field_width = field_width
-    @field_height = field_height
-    @visible = false
     @x_offset = @image.width / 2.0
     @y_shift = -1.0 * @image.height / 2.0
     @rot = 0
@@ -20,23 +17,15 @@ class Ammo
     end
   end
 
-  def move_ammo
-    @y += @y_shift
-    if @y < 0
-      @visible = false
-    end
-  end
-
   def draw
     if @visible
-      #@image.draw(@x, @y, 1)
+      if @y < 0
+        @visible = false
+      end
       @rot += 60
       @image.draw_rot(@x, @y, 1, @rot)
-      move_ammo
+      shift(0, @y_shift)
     end
   end
 
-  def bounds
-    return @x, @y, @x + @image.width, @y + @image.height
-  end
 end
