@@ -6,7 +6,7 @@ task :default => [:test, :run]
 
 desc "Play BaconBits"
 task :run do
-  sh "lib/ruby baconbits.rb"
+  sh "ruby lib/baconbits.rb"
 end
 
 desc "Run all tests"

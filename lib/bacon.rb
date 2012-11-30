@@ -7,10 +7,11 @@ class Bacon < Actor
 
   def initialize(window, ammo, field_width, field_height)
     super(window, nil, 0, 0, field_width, field_height, true)
-
     @ammo = ammo
-    @complete = false
+
     load_bacon(5)
+
+    @complete = false
     @boom = Gosu::Song.new("media/boom.wav")
     @win = Gosu::Song.new("media/applause.wav")
   end
@@ -21,7 +22,7 @@ class Bacon < Actor
 
       @bits.each do |row|
         row.each do |bit|
-          check_for_hit(bit)
+          check_for_hit(bit) if @ammo.visible
           bit.draw
         end
       end
@@ -49,31 +50,28 @@ private
     @rise = false
 
     # Assemble the bacon from bits
-    x = @x
-    y = @y
+    bit_x = @x
+    bit_y = @y
     @bits = Array.new(@num_rows)
     @bits.each_index do |row|
-      x = @x
+      bit_x = @x
       @bits[row] = []
       width_in_bits.times do
-        @bits[row] << Bit.new(@window, tiles[row], x, y, true)
-        x += @bit_size
+        @bits[row] << Bit.new(@window, tiles[row], bit_x, bit_y, @field_width, @field_height, true)
+        bit_x += @bit_size
       end
-      y += @bit_size
+      bit_y += @bit_size
     end
 
     @bits_left = @bits.count * @bits[0].count
-    p "Bits: #{@bits_left}"
   end
 
   def move_bacon
     # calculate shift
     x_sign = @direction == :left ? -1 : 1
-    x_shift = (@bit_size / 16) * x_sign
-    @x += x_shift
+    @x_shift = (@bit_size / 16) * x_sign
     y_sign = @rise ? -1 : 1
-    y_shift = (@bit_size / 2) * y_sign
-    @y += y_shift
+    @y_shift = (@bit_size / 2) * y_sign
 
     # update direction if we've hit a boundary
     if @x > @x_max
@@ -90,7 +88,7 @@ private
     # shift each bit accordingly
     @bits.each do |row|
       row.each do |bit|
-        bit.shift(x_shift, y_shift)
+        bit.shift(1, 1)
       end
     end
   end
@@ -98,7 +96,7 @@ private
   def check_for_hit(bit)
     hit = false
 
-    if @ammo.visible && bit.visible?
+    if @ammo.visible && bit.visible && !bit.falling
       a = {}
       a[:x], a[:y], a[:right], a[:bottom] = @ammo.bounds
       b = {:x=>bit.x, :y=>bit.y, :right=>bit.x+@bit_size, :bottom=>bit.y+@bit_size}
@@ -119,6 +117,7 @@ private
           @boom.play
           @bits_left -= 1
           hit = true
+          break
         end
       end
     end

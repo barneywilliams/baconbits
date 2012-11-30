@@ -1,17 +1,20 @@
 {
+	"build_systems":
+	[
+		{
+			"cmd":
+			[
+				"rake.bat",
+				"run"
+			],
+			"name": "Play Game",
+			"working_dir": "${project_path}"
+		}
+	],
 	"folders":
 	[
 		{
-			"path": "/Users/greg/git/baconbits"
+			"path": "."
 		}
-	],
-
-	"build_systems":
-    [
-        {
-            "name": "Play Game",
-            "cmd": ["ruby", "lib/baconbits.rb"],
-            "working_dir": "${project_path:${folder}}"
-        }
-    ]
+	]
 }

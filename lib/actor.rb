@@ -51,12 +51,12 @@ class Actor
   end
 
   def draw
-    @image.draw(x, y, 1) unless @image.nil? || !@visible
+    @image.draw(@x, @y, 1) unless @image.nil? || !@visible
   end
 
-  def shift(x, y)
-    @x += x * @x_shift
-    @y += y * @y_shift
+  def shift(x_delta, y_delta)
+    @x = @x + (x_delta * @x_shift)
+    @y = @y + (y_delta * @y_shift)
   end
 
   def move(x, y)

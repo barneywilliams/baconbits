@@ -38,7 +38,7 @@ class BaconBitsWindow < Gosu::Window
       @width, @height,
       false)
     @level_complete.move(
-      (@width * 0.5) - (@level_complete.width * 0.5),
+      (@width * 0.5)  - (@level_complete.width * 0.5),
       (@height * 0.5) - (@level_complete.height * 0.5))
     @actors << @level_complete
 
@@ -57,30 +57,20 @@ class BaconBitsWindow < Gosu::Window
   def update
     if button_down? Gosu::KbLeft or button_down? Gosu::GpLeft then
       @player.shift(-1, 0)
-    end
-    
-    if button_down? Gosu::KbRight or button_down? Gosu::GpRight then
+    elsif button_down? Gosu::KbRight or button_down? Gosu::GpRight then
       @player.shift(1, 0)
-    end
-
-    if button_down? Gosu::KbUp or button_down? Gosu::GpButton0 or button_down? Gosu::KbSpace then
+    elsif button_down? Gosu::KbUp or button_down? Gosu::GpButton0 or button_down? Gosu::KbSpace then
       @player.fire
+    elsif button_down? Gosu::KbEscape
+      close
     end
   end
   
   def draw
-    if @bacon.complete
-      @bacon.show(false)
+    if @bacon.complete && !@level_complete.visible
       @level_complete.show(true)
     end
-
     @actors.each{|actor| actor.draw}
-  end
-
-  def button_down(id)
-    if id == Gosu::KbEscape
-      close
-    end
   end
 
 end
