@@ -8,6 +8,10 @@ class Ammo < Actor
     @rot = 0
   end
 
+  def reset
+    @visible = false
+  end
+
   def fire_from(x, y)
     if !@visible
       @x = x - @x_offset

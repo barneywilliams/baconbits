@@ -12,8 +12,17 @@ class Bacon < Actor
     load_bacon(5)
 
     @complete = false
-    @boom = Gosu::Song.new("media/boom.wav")
-    @win = Gosu::Song.new("media/applause.wav")
+    @boom = Gosu::Sample.new("media/boom.wav")
+    @you_win = Gosu::Sample.new("media/applause.wav")
+    @you_win_inst = nil
+  end
+
+  def reset
+    prep_bacon
+    if @you_win_inst
+      @you_win_inst.stop
+      @you_win_inst = nil
+    end
   end
                                                                                                                                
   def draw
@@ -29,7 +38,7 @@ class Bacon < Actor
 
       if @bits_left <= 0
         sleep 0.4
-        @win.play
+        @you_win_inst = @you_win.play
         @complete = true
       end
     end
@@ -38,10 +47,16 @@ class Bacon < Actor
 private
 
   def load_bacon(width_in_bits)
+    @width_in_bits = width_in_bits
     img = Gosu::Image.new(@window, "media/bacon.png")
     @bit_size = img.width
     @num_rows = img.height / @bit_size
-    tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
+    @tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
+    prep_bacon
+  end
+
+  def prep_bacon(width_in_bits=nil)
+    @width_in_bits = width_in_bits if !width_in_bits.nil?
     @x = @x_min = 60
     @x_max = 400
     @y = @y_min = 80
@@ -56,8 +71,8 @@ private
     @bits.each_index do |row|
       bit_x = @x
       @bits[row] = []
-      width_in_bits.times do
-        @bits[row] << Bit.new(@window, tiles[row], bit_x, bit_y, @field_width, @field_height, true)
+      @width_in_bits.times do
+        @bits[row] << Bit.new(@window, @tiles[row], bit_x, bit_y, @field_width, @field_height, true)
         bit_x += @bit_size
       end
       bit_y += @bit_size
@@ -111,15 +126,17 @@ private
         if ((c[:x] >= b[:x]) && (c[:x] <= b[:right]) &&
             (c[:y] >= b[:y]) && (c[:y] <= b[:bottom]))
           bit.visible = false
-          bit.falling = true
           @ammo.visible = false
-          @boom.stop
-          @boom.play
           @bits_left -= 1
           hit = true
           break
         end
       end
+    end
+
+    if hit && !bit.falling
+      @boom.play
+      bit.falling = true
     end
 
     return hit

@@ -6,7 +6,7 @@ class Actor
     :visible,
     :x_shift, :y_shift
 
-  def initialize(window, image, x, y, field_width, field_height, visible=false)
+  def initialize(window, image, x, y, field_width, field_height, visible=false, z_order=1)
     @window = window
     @image = image
     @x = x
@@ -14,6 +14,8 @@ class Actor
     @field_width = field_width
     @field_height = field_height
     @visible = visible
+    @z_order = z_order
+
     @width = @height = 0
     @x_shift = @y_shift = 1
   end
@@ -51,7 +53,7 @@ class Actor
   end
 
   def draw
-    @image.draw(@x, @y, 1) unless @image.nil? || !@visible
+    @image.draw(@x, @y, @z_order) unless @image.nil? || !@visible
   end
 
   def shift(x_delta, y_delta)

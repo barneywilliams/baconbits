@@ -21,7 +21,7 @@ class BaconBitsWindow < Gosu::Window
       Gosu::Image.new(self, "media/background.png", true),
       0, 0,
       @width, @height,
-      true)
+      true, 0)
     @actors << @background
 
     @title = Actor.new(self,
@@ -61,8 +61,6 @@ class BaconBitsWindow < Gosu::Window
       @player.shift(1, 0)
     elsif button_down? Gosu::KbUp or button_down? Gosu::GpButton0 or button_down? Gosu::KbSpace then
       @player.fire
-    elsif button_down? Gosu::KbEscape
-      close
     end
   end
   
@@ -71,6 +69,15 @@ class BaconBitsWindow < Gosu::Window
       @level_complete.show(true)
     end
     @actors.each{|actor| actor.draw}
+  end
+
+  def button_down(id)
+    if id == Gosu::KbEscape
+      close
+    elsif id == Gosu::KbR
+      @bacon.reset
+      @ammo.reset
+    end
   end
 
 end
