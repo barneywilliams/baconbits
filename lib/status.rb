@@ -4,7 +4,7 @@ class Status < Actor
 
   def initialize(window, field_width, field_height)
     super(window, nil, 0, 0, field_width, field_height)
-    @start_score = 420
+    @start_score = 0
     @score_y = 10
     @score_x_offset = 40
 
@@ -28,8 +28,13 @@ class Status < Actor
 
   def score=(value)
     @current_score = value
-    @score_img = Gosu::Image.from_text(@window, @current_score.to_s, "Andale Mono", 30)
+    @score_img = Gosu::Image.from_text(@window,
+      @current_score.to_s, "System", 30)
     @score_x = @field_width - @score_img.width - @score_x_offset
+  end
+
+  def score
+    @current_score
   end
 
   def draw
@@ -37,7 +42,7 @@ class Status < Actor
     @lives.each do |life|
       life.draw(life_x, @lives_y, 2)
       life_x += @next_life_offset
-    end
+    end         
 
     @score_img.draw(@score_x, @score_y, 2)
   end

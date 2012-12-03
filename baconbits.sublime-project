@@ -8,7 +8,8 @@
 				"run"
 			],
 			"name": "Play Game",
-			"working_dir": "${project_path}"
+			"working_dir": "${project_path}",
+			"file_regex": "^\\s*f?r?o?m? ?(...*?):([0-9]*):?([0-9]*)"
 		}
 	],
 	"folders":

@@ -5,24 +5,22 @@ class Bacon < Actor
 
   attr_reader :complete
 
-  def initialize(window, ammo, field_width, field_height)
+  def initialize(window, ammo, status, width_in_bits, field_width, field_height)
     super(window, nil, 0, 0, field_width, field_height, true)
     @ammo = ammo
+    @status = status
 
-    load_bacon(5)
+    load_bacon(width_in_bits)
 
+    @score_per_bit = 50
     @complete = false
     @boom = Gosu::Sample.new("media/boom.wav")
     @you_win = Gosu::Sample.new("media/applause.wav")
     @you_win_inst = nil
   end
 
-  def reset
-    prep_bacon
-    if @you_win_inst
-      @you_win_inst.stop
-      @you_win_inst = nil
-    end
+  def cook(width_in_bits)
+    prep_bacon(width_in_bits)
   end
                                                                                                                                
   def draw
@@ -47,16 +45,19 @@ class Bacon < Actor
 private
 
   def load_bacon(width_in_bits)
-    @width_in_bits = width_in_bits
     img = Gosu::Image.new(@window, "media/bacon.png")
     @bit_size = img.width
     @num_rows = img.height / @bit_size
     @tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
-    prep_bacon
+    prep_bacon(width_in_bits)
   end
 
-  def prep_bacon(width_in_bits=nil)
-    @width_in_bits = width_in_bits if !width_in_bits.nil?
+  def prep_bacon(width_in_bits)
+    if @you_win_inst
+      @you_win_inst.stop
+      @you_win_inst = nil
+    end
+
     @x = @x_min = 60
     @x_max = 400
     @y = @y_min = 80
@@ -67,18 +68,31 @@ private
     # Assemble the bacon from bits
     bit_x = @x
     bit_y = @y
-    @bits = Array.new(@num_rows)
-    @bits.each_index do |row|
-      bit_x = @x
-      @bits[row] = []
-      @width_in_bits.times do
-        @bits[row] << Bit.new(@window, @tiles[row], bit_x, bit_y, @field_width, @field_height, true)
-        bit_x += @bit_size
-      end
-      bit_y += @bit_size
-    end
 
-    @bits_left = @bits.count * @bits[0].count
+    if @bits.nil?
+      @bits = Array.new(@num_rows)
+      @bits_left = 0
+      @bits.each_index do |row|
+        bit_x = @x
+        @bits[row] = []
+        width_in_bits.times do
+          @bits[row] << Bit.new(@window, @tiles[row], bit_x, bit_y, @field_width, @field_height, true)
+          bit_x += @bit_size
+          @bits_left += 1
+        end
+        bit_y += @bit_size
+      end
+    else
+      @bits.each do |row|
+        bit_x = @x
+        row.each do |bit|
+          bit.reset(bit_x, bit_y)
+          bit_x += @bit_size
+          @bits_left += 1
+        end
+        bit_y += @bit_size
+      end
+    end
   end
 
   def move_bacon
@@ -135,6 +149,7 @@ private
     end
 
     if hit && !bit.falling
+      @status.score += @score_per_bit
       @boom.play
       bit.falling = true
     end
