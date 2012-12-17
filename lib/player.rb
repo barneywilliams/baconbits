@@ -4,7 +4,9 @@ require 'ammo'
 class Player < Actor
   def initialize(window, ammo, x, y, field_width, field_height)
     image = Gosu::Image.new(window, "media/actor.png", false)
-    super(window, image, x, y, field_width, field_height, true)
+    super(window, image, x, y, field_width, field_height, true, 0)
+    @z = 0
+    @visible = true
     @shift_width = 4.0
     @score = 0
     @x_padding = 40.0

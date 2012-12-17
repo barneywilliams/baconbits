@@ -2,8 +2,8 @@ require 'actor'
 
 class Status < Actor
 
-  def initialize(window, field_width, field_height)
-    super(window, nil, 0, 0, field_width, field_height)
+  def initialize(cfg)
+    super(cfg)
     @start_score = 0
     @score_y = 10
     @score_x_offset = 40
@@ -30,7 +30,7 @@ class Status < Actor
     @current_score = value
     @score_img = Gosu::Image.from_text(@window,
       @current_score.to_s, "System", 30)
-    @score_x = @field_width - @score_img.width - @score_x_offset
+    @score_x = @viewport_width - @score_img.width - @score_x_offset
   end
 
   def score

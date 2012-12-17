@@ -2,8 +2,9 @@ require 'actor'
 
 class Ammo < Actor
 
-  def initialize(window, field_width, field_height)
-    super(window, Gosu::Image.new(window, "media/ammo.png", false), 0, 0, field_width, field_height)
+  def initialize(cfg)
+    cfg[:image] = Gosu::Image.new(cfg[:window], "media/ammo.png", false)
+    super(cfg)
     @x_offset = @width / 2.0
     @rot = 0
   end
