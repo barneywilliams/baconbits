@@ -11,7 +11,9 @@ class Actor
     :x_shift, :y_shift
     :bounds
 
-  def initialize(cfg, image=nil, x=0, y=0, viewport_width=0, viewport_height=0, visible=false, z=5)
+  def initialize(cfg)
+
+    raise "Actor requires a Gosu Window" if cfg[:window].nil?
 
     default_config = {
       x: 0, y: 0, z: 1,
@@ -20,48 +22,27 @@ class Actor
       viewport_height: 0,
       visible: false,
     }
+    cfg = default_config.merge(cfg)
 
-    if cfg.is_a?(Hash)
-      cfg = default_config.merge(cfg)
-      @window = cfg[:window]
-      @image = cfg[:image]
-      @x = cfg[:x]
-      @y = cfg[:y]
-      @viewport_width = cfg[:viewport_width]
-      @viewport_height = cfg[:viewport_height]
-      @visible = cfg[:visible]
-      @z = cfg[:z]
+    @window = cfg[:window]
+    @x = cfg[:x]
+    @y = cfg[:y]
+    @z = cfg[:z]
+    @viewport_width = cfg[:viewport_width]
+    @viewport_height = cfg[:viewport_height]
+    @visible = cfg[:visible]
+
+    @width   = cfg[:width].nil?   ? 0 : cfg[:width]
+    @height  = cfg[:height].nil?  ? 0 : cfg[:height]
+    @x_shift = cfg[:x_shift].nil? ? 1 : cfg[:x_shift]
+    @y_shift = cfg[:y_shift].nil? ? 1 : cfg[:y_shift]
+
+    if cfg[:image].is_a?(String)
+      @image = Gosu::Image.new(@window, cfg[:image], false)
     else
-      @window = cfg
-      @image = image
-      @x = x
-      @y = y
-      @viewport_width = viewport_width
-      @viewport_height = viewport_height
-      @visible = visible
-      @z = z
+      @image = cfg[:image]
     end
-
-    @width = @height = 0
-    @x_shift = @y_shift = 1
   end
-
-  # def initialize(cfg={})
-  #   @window       = cfg[:window]
-  #   raise "Actor requires a Gosu Window" if @window.nil?
-
-  #   @image        = cfg[:image]        if !cfg[:image].nil?
-  #   @x            = cfg[:x]            ? cfg[:x]            : 0
-  #   @y            = cfg[:y]            ? cfg[:y]            : 0
-  #   @viewport_width  = cfg[:viewport_width]  ? cfg[:viewport_width]  : 400
-  #   @viewport_height = cfg[:viewport_height] ? cfg[:viewport_height] : 400
-  #   @visible      = cfg[:visible]      ? cfg[:visible]      : false
-  #   @z      = cfg[:z]      ? cfg[:z]      : 1
-  #   @width        = cfg[:width]        ? cfg[:width]        : 0
-  #   @height       = cfg[:height]       ? cfg[:height]       : 0
-  #   @x_shift      = cfg[:x_shift]      ? cfg[:x_shift]      : 1
-  #   @y_shift      = cfg[:y_shift]      ? cfg[:y_shift]      : 1
-  # end
 
   def width
     return @image ? @image.width : @width

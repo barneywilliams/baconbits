@@ -7,6 +7,7 @@ class Bacon < Actor
 
   def initialize(cfg)
     super(cfg)
+    @bit_cfg = cfg.dup
     @ammo =    cfg[:ammo]
     @status =  cfg[:status]
     @width_in_bits = cfg[:width_in_bits]
@@ -79,7 +80,8 @@ private
         bit_x = @x
         @bits[row] = []
         @width_in_bits.times do
-          @bits[row] << Bit.new(@window, @tiles[row], bit_x, bit_y, @viewport_width, @viewport_height, true)
+          @bits[row] << Bit.new(@bit_cfg.merge(
+            x: bit_x, y: bit_y, image: @tiles[row], visible: true))
           bit_x += @bit_size
           @bits_left += 1
         end

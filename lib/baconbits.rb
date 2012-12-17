@@ -10,52 +10,57 @@ require 'status'
 class BaconBitsWindow < Gosu::Window
 
   def initialize
-    @width = 727
-    @height = 512
-    super(@width, @height, false)
+    @client_width = 727
+    @client_height = 512
+    super(@client_width, @client_height, false)
     self.caption = 'Bacon Bits'
+    
     @bacon_width = 20
 
     @actors = {}
 
     actor_defaults = {
       :window => self,
-      :viewport_width => @width,
-      :viewport_height => @height,
+      :viewport_width => @client_width,
+      :viewport_height => @client_height,
       :visible => false
     }
 
     @actors[:background] = Actor.new(actor_defaults.merge(
-      image: Gosu::Image.new(self, "media/background.png", true),
+      image: "media/background.png",
       z: 0, visible: true))
 
     @actors[:title] = Actor.new(actor_defaults.merge(
-      image: Gosu::Image.new(self, "media/title.png", true),
+      image: "media/title.png",
       z: 1, visible: true))
-    @actors[:title].move(0.5*(@width - @actors[:title].width), 8)
+    @actors[:title].move(0.5*(@client_width - @actors[:title].width), 8)
 
-    @actors[:status] = Status.new(actor_defaults.merge(z: 3))
+    @actors[:status] = Status.new(actor_defaults.merge(z: 2))
 
     @actors[:ammo] = Ammo.new(actor_defaults.merge(z: 1))
 
-    @actors[:player] = Player.new(self, @actors[:ammo],
-      0, 0, @width, @height)
+    @actors[:player] = Player.new(actor_defaults.merge(
+      image: "media/actor.png",
+      ammo: @actors[:ammo], visible: true, z: 2))
     @actors[:player].move(
-      0.5*(@width - @actors[:player].width),
-      0.9*@height - 0.5*@actors[:player].height)
-    
+      ((0.5 * @client_width)  - (0.5 * @actors[:player].width)),
+      ((0.9 * @client_height) - (0.5 * @actors[:player].height)))
+
     @actors[:bacon] = Bacon.new(actor_defaults.merge(
+      image: "media/actor.png",
       ammo: @actors[:ammo],
       status: @actors[:status],
       width_in_bits: @bacon_width,
       visible: true,
-      z: 8))
+      z: 1))
 
     @actors[:level_complete] = Actor.new(actor_defaults.merge(
-      image: Gosu::Image.from_text(self, "Yay! A Winner is You!!", "System", 24)))
+      image: Gosu::Image.from_text(self, "Yay! A Winner is You!!", "System", 50),
+      z: 1,
+      visible: false))
     @actors[:level_complete].move(
-      0.5*(@width - @actors[:level_complete].width),
-      0.5*(@height - @actors[:level_complete].height))
+      0.5*(@client_width - @actors[:level_complete].width),
+      0.5*(@client_height - @actors[:level_complete].height))
   end
 
   def update

@@ -4,8 +4,8 @@ class Bit < Actor
 
   attr_accessor :falling
 
-  def initialize(window, image=nil, x=0, y=0, field_width=0, field_height=0, visible=false)
-    super(window, image, x, y, field_width, field_height, visible, 1)
+  def initialize(cfg)
+    super(cfg)
     @falling = false
   end
 
