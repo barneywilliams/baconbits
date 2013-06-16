@@ -10,76 +10,85 @@ require 'status'
 class BaconBitsWindow < Gosu::Window
 
   def initialize
-    @width = 727
-    @height = 512
-    super(@width, @height, false)
+    @client_width = 727
+    @client_height = 512
+    super(@client_width, @client_height, false)
     self.caption = 'Bacon Bits'
+    
+    @bacon_width = 20
 
-    @actors = []
+    @actors = {}
 
-    @background = Actor.new(self,
-      Gosu::Image.new(self, "media/background.png", true),
-      0, 0,
-      @width, @height,
-      true)
-    @actors << @background
+    actor_defaults = {
+      :window => self,
+      :viewport_width => @client_width,
+      :viewport_height => @client_height,
+      :visible => false
+    }
 
-    @title = Actor.new(self,
-      Gosu::Image.new(self, "media/title.png", true),
-      0, 0,
-      @width, @height,
-      true)
-    @title.move((@width * 0.5) - (@title.width * 0.5), 8)
-    @actors << @title
+    @actors[:background] = Actor.new(actor_defaults.merge(
+      image: "media/background.png",
+      z: 0, visible: true))
 
-    @level_complete = Actor.new(self,
-      Gosu::Image.from_text(self, "Yay! A Winner is You!!", "Consolas", 24),
-      0, 0,
-      @width, @height,
-      false)
-    @level_complete.move(
-      (@width * 0.5) - (@level_complete.width * 0.5),
-      (@height * 0.5) - (@level_complete.height * 0.5))
-    @actors << @level_complete
+    @actors[:title] = Actor.new(actor_defaults.merge(
+      image: "media/title.png",
+      z: 1, visible: true))
+    @actors[:title].move(0.5*(@client_width - @actors[:title].width), 8)
 
-    @status = Status.new(self, @width, @height)
-    @actors << @status
-    @ammo = Ammo.new(self, @width, @height)
-    @actors << @ammo
-    @bacon = Bacon.new(self, @ammo, @width, @height)
-    @actors << @bacon
+    @actors[:status] = Status.new(actor_defaults.merge(z: 2))
 
-    @player = Player.new(self, @ammo, @width, @height)
-    @player.move((@width * 0.5) - (@player.width * 0.5), (@height * 0.9) - (@player.height * 0.5))
-    @actors << @player
+    @actors[:ammo] = Ammo.new(actor_defaults.merge(z: 1))
+
+    @actors[:player] = Player.new(actor_defaults.merge(
+      image: "media/actor.png",
+      ammo: @actors[:ammo], visible: true, z: 2))
+    @actors[:player].move(
+      ((0.5 * @client_width)  - (0.5 * @actors[:player].width)),
+      ((0.9 * @client_height) - (0.5 * @actors[:player].height)))
+
+    @actors[:bacon] = Bacon.new(actor_defaults.merge(
+      image: "media/actor.png",
+      ammo: @actors[:ammo],
+      status: @actors[:status],
+      width_in_bits: @bacon_width,
+      visible: true,
+      z: 1))
+
+    @actors[:level_complete] = Actor.new(actor_defaults.merge(
+      image: Gosu::Image.from_text(self, "Yay! A Winner is You!!", "System", 50),
+      z: 1,
+      visible: false))
+    @actors[:level_complete].move(
+      0.5*(@client_width - @actors[:level_complete].width),
+      0.5*(@client_height - @actors[:level_complete].height))
   end
 
   def update
     if button_down? Gosu::KbLeft or button_down? Gosu::GpLeft then
-      @player.shift(-1, 0)
+      @actors[:player].shift(-1, 0)
     end
-    
     if button_down? Gosu::KbRight or button_down? Gosu::GpRight then
-      @player.shift(1, 0)
+      @actors[:player].shift(1, 0)
     end
-
     if button_down? Gosu::KbUp or button_down? Gosu::GpButton0 or button_down? Gosu::KbSpace then
-      @player.fire
+      @actors[:player].fire
     end
   end
   
   def draw
-    if @bacon.complete
-      @bacon.show(false)
-      @level_complete.show(true)
+    if @actors[:bacon].complete && !@level_complete.visible
+      @actors[:level_complete].show(true)
     end
-
-    @actors.each{|actor| actor.draw}
+    @actors.each{|name, actor| actor.draw}
   end
 
   def button_down(id)
     if id == Gosu::KbEscape
       close
+    elsif id == Gosu::KbR
+      @actors[:bacon].cook(5)
+      @actors[:ammo].reset
+      @actors[:status].reset
     end
   end
 

@@ -5,30 +5,42 @@ class Bacon < Actor
 
   attr_reader :complete
 
-  def initialize(window, ammo, field_width, field_height)
-    super(window, nil, 0, 0, field_width, field_height, true)
+  def initialize(cfg)
+    super(cfg)
+    @bit_cfg = cfg.dup
+    @ammo =    cfg[:ammo]
+    @status =  cfg[:status]
+    @width_in_bits = cfg[:width_in_bits]
 
-    @ammo = ammo
+    @score_per_bit = 50
     @complete = false
-    load_bacon(5)
-    @boom = Gosu::Song.new("media/boom.wav")
-    @win = Gosu::Song.new("media/applause.wav")
+    @boom = Gosu::Sample.new("media/boom.wav")
+    @you_win = Gosu::Sample.new("media/applause.wav")
+    @you_win_inst = nil
+
+    load_bacon
+  end
+
+  def cook(width_in_bits)
+    @width_in_bits = width_in_bits
+    prep_bacon
   end
                                                                                                                                
   def draw
     if !@complete
       move_bacon
+      gone?
 
       @bits.each do |row|
         row.each do |bit|
-          check_for_hit(bit)
+          check_for_hit(bit) if @ammo.visible
           bit.draw
         end
       end
 
       if @bits_left <= 0
         sleep 0.4
-        @win.play
+        @you_win_inst = @you_win.play
         @complete = true
       end
     end
@@ -36,61 +48,80 @@ class Bacon < Actor
 
 private
 
-  def load_bacon(width_in_bits)
+  def load_bacon
     img = Gosu::Image.new(@window, "media/bacon.png")
     @bit_size = img.width
     @num_rows = img.height / @bit_size
-    tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
+    @tiles = Gosu::Image.load_tiles(@window, "media/bacon.png", @bit_size, @bit_size, true)
+    prep_bacon
+  end
+
+  def prep_bacon
+    if @you_win_inst
+      @you_win_inst.stop
+      @you_win_inst = nil
+    end
+
     @x = @x_min = 60
     @x_max = 400
     @y = @y_min = 80
     @y_max = 200
-    @direction = :right
-    @rise = false
+    @x_sign = 1
+    @y_sign = 1
 
     # Assemble the bacon from bits
-    x = @x
-    y = @y
-    @bits = Array.new(@num_rows)
-    @bits.each_index do |row|
-      x = @x
-      @bits[row] = []
-      width_in_bits.times do
-        @bits[row] << Bit.new(@window, tiles[row], x, y, true)
-        x += @bit_size
-      end
-      y += @bit_size
-    end
+    bit_x = @x
+    bit_y = @y
 
-    @bits_left = @bits.count * @bits[0].count
-    p "Bits: #{@bits_left}"
+    if @bits.nil?
+      @bits = Array.new(@num_rows)
+      @bits_left = 0
+      @bits.each_index do |row|
+        bit_x = @x
+        @bits[row] = []
+        @width_in_bits.times do
+          @bits[row] << Bit.new(@bit_cfg.merge(
+            x: bit_x, y: bit_y, image: @tiles[row], visible: true))
+          bit_x += @bit_size
+          @bits_left += 1
+        end
+        bit_y += @bit_size
+      end
+    else
+      @bits.each do |row|
+        bit_x = @x
+        row.each do |bit|
+          bit.reset(bit_x, bit_y)
+          bit_x += @bit_size
+          @bits_left += 1
+        end
+        bit_y += @bit_size
+      end
+    end
   end
 
   def move_bacon
     # calculate shift
-    x_sign = @direction == :left ? -1 : 1
-    x_shift = (@bit_size / 16) * x_sign
-    @x += x_shift
-    y_sign = @rise ? -1 : 1
-    y_shift = (@bit_size / 2) * y_sign
-    @y += y_shift
+    @x_shift = @bit_size * 0.02
+    @y_shift = @bit_size * 0.03
+    shift
 
     # update direction if we've hit a boundary
-    if @x > @x_max
-      @direction = :left
-    elsif @x < @x_min
-      @direction = :right
-    end
-    if @y > @y_max
-      @rise = true
-    elsif @y < @y_min
-      @rise = false
-    end
+    # if right > @x_max
+    #   @x_sign = -1
+    # elsif @x < @x_min
+    #   @x_sign = 1
+    # end
+    # if bottom > @y_max
+    #   @y_sign = -1
+    # elsif @y < @y_min
+    #   @y_sign = 1
+    # end
 
     # shift each bit accordingly
     @bits.each do |row|
       row.each do |bit|
-        bit.shift(x_shift, y_shift)
+        bit.shift(@x_shift, @y_shift)
       end
     end
   end
@@ -98,29 +129,26 @@ private
   def check_for_hit(bit)
     hit = false
 
-    if @ammo.visible && bit.visible?
-      a = {}
-      a[:x], a[:y], a[:right], a[:bottom] = @ammo.bounds
-      b = {:x=>bit.x, :y=>bit.y, :right=>bit.x+@bit_size, :bottom=>bit.y+@bit_size}
+    if @ammo.visible && bit.visible && !bit.falling
+      b = Bounds.new(bit.x, bit.y, bit.x+@bit_size, bit.y+@bit_size)
 
       # Check each corner of the ammo to see if it is inside the bit
-      ammo_corners = [
-        {:x => a[:x],     :y => a[:y]},
-        {:x => a[:right], :y => a[:y]},
-        {:x => a[:x],     :y => a[:bottom]},
-        {:x => a[:right], :y => a[:bottom]}
-      ].each do |c|
-        if ((c[:x] >= b[:x]) && (c[:x] <= b[:right]) &&
-            (c[:y] >= b[:y]) && (c[:y] <= b[:bottom]))
+      @ammo.corners.each do |c|
+        if ((c[:x] >= b.x) && (c[:x] <= b.right) &&
+            (c[:y] >= b.y) && (c[:y] <= b.bottom))
           bit.visible = false
-          bit.falling = true
           @ammo.visible = false
-          @boom.stop
-          @boom.play
           @bits_left -= 1
           hit = true
+          break
         end
       end
+    end
+
+    if hit && !bit.falling
+      @status.score += @score_per_bit
+      @boom.play
+      bit.falling = true
     end
 
     return hit
