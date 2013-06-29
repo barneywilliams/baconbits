@@ -7,6 +7,8 @@ require 'ammo'
 require 'bacon'
 require 'status'
 
+BACONBITS_FONT = "Consolas"
+
 class BaconBitsWindow < Gosu::Window
 
   def initialize
@@ -20,19 +22,22 @@ class BaconBitsWindow < Gosu::Window
     @actors = {}
 
     actor_defaults = {
-      :window => self,
-      :viewport_width => @client_width,
-      :viewport_height => @client_height,
-      :visible => false
+      window: self,
+      viewport_width: @client_width,
+      viewport_height: @client_height,
+      visible: false
     }
 
-    @actors[:background] = Actor.new(actor_defaults.merge(
+    @actors[:background] = Actor.new(actor_defaults.merge({
       image: "media/background.png",
-      z: 0, visible: true))
+      z: 0,
+      visible: true
+    }))
 
-    @actors[:title] = Actor.new(actor_defaults.merge(
+    @actors[:title] = Actor.new(actor_defaults.merge({
       image: "media/title.png",
-      z: 1, visible: true))
+      z: 1,
+      visible: true}))
     @actors[:title].move(0.5*(@client_width - @actors[:title].width), 8)
 
     @actors[:status] = Status.new(actor_defaults.merge(z: 2))
@@ -55,7 +60,7 @@ class BaconBitsWindow < Gosu::Window
       z: 1))
 
     @actors[:level_complete] = Actor.new(actor_defaults.merge(
-      image: Gosu::Image.from_text(self, "Yay! A Winner is You!!", "System", 50),
+      image: Gosu::Image.from_text(self, "Yay! A Winner is You!!", BACONBITS_FONT, 50),
       z: 1,
       visible: false))
     @actors[:level_complete].move(

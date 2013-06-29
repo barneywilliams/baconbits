@@ -29,7 +29,7 @@ class Status < Actor
   def score=(value)
     @current_score = value
     @score_img = Gosu::Image.from_text(@window,
-      @current_score.to_s, "System", 30)
+      @current_score.to_s, BACONBITS_FONT, 30)
     @score_x = @viewport_width - @score_img.width - @score_x_offset
   end
 
