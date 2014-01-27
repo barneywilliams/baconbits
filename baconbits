@@ -1,2 +1,2 @@
-#!/usr/bin/ruby
-require './lib/baconbits'
+#/bin/sh
+ruby ./lib/baconbits.rb

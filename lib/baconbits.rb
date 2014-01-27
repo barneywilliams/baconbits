@@ -1,4 +1,4 @@
-require 'rubygems' # only necessary in Ruby 1.8
+# require 'rubygems' # only necessary in Ruby 1.8
 require 'gosu'
 
 $LOAD_PATH << File.dirname(__FILE__)

@@ -29,20 +29,20 @@ class Bacon < Actor
   def draw
     if !@complete
       move_bacon
-      gone?
-
-      @bits.each do |row|
-        row.each do |bit|
-          check_for_hit(bit) if @ammo.visible
-          bit.draw
+      
+      if gone?
+        win
+      else
+        @bits.each do |row|
+          row.each do |bit|
+            check_for_hit(bit) if @ammo.visible
+            bit.draw
+          end
         end
+
+        win if @bits_left <= 0
       end
 
-      if @bits_left <= 0
-        sleep 0.4
-        @you_win_inst = @you_win.play
-        @complete = true
-      end
     end
   end
 
@@ -138,6 +138,7 @@ private
             (c[:y] >= b.y) && (c[:y] <= b.bottom))
           bit.visible = false
           @ammo.visible = false
+          puts "x"
           @bits_left -= 1
           hit = true
           break
@@ -152,6 +153,12 @@ private
     end
 
     return hit
+  end
+
+  def win
+    sleep 0.4
+    @you_win_inst = @you_win.play
+    @complete = true
   end
 
 end

@@ -11,7 +11,7 @@ class Actor
     :x_shift, :y_shift
     :bounds
 
-  def initialize(cfg)
+  def initialize(cfg={})
 
     raise "Actor requires a Gosu Window" if cfg[:window].nil?
 
